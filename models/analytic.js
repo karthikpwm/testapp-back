@@ -1,5 +1,69 @@
 const { db } = require('../config/config')
 
+exports.starttest = async (candidate_id) => {
+  const con = await db.getConnection()
+  try {
+    await con.beginTransaction();
+    const result = await con.query("select testlog_id from candidatetestlog where candidate_id = ? limit 1",
+      [candidate_id])
+    const testlog_id = result[0][0].testlog_id
+    await con.commit();
+    await con.beginTransaction();
+    await con.query("UPDATE candidatetestlog SET test = ?, attenddate = now() WHERE testlog_id = ? ",
+      [1, testlog_id])
+    await con.commit();
+    await con.beginTransaction();
+    await con.query("insert into candidatetestdata (testlog_id,candidate_id,question_id,answer,createddate) select ?,?,question_id,?,now() from questions limit 20",
+      [testlog_id, candidate_id, null])
+    //await con.query("SELECT * from candidatetestdata inner join questions ON questions.question_id = candidatetestdata.question_id where testlog_id = ?,candidate_id = ?",
+    //[testlog_id, candidate_id, NULL])
+    await con.commit();
+    //console.log(testlog_id)
+    return testlog_id;
+
+  } catch (err) {
+    await con.rollback();
+    throw err;
+  } finally {
+    con.close()
+  }
+}
+
+exports.answertest = async (testlog_id, candidate_id, userAnswers) => {
+  const con = await db.getConnection()
+  try {
+
+    await con.beginTransaction();
+    let getUserAnswers = []
+    for (const [key, value] of Object.entries(userAnswers)) {
+      const result = await con.query("update candidatetestdata set answer = ? where testlog_id = ? and candidate_id = ? and question_id = ?",
+        [value, testlog_id, candidate_id, key])
+    }
+
+    await con.commit();
+
+    return 1;
+
+  } catch (err) {
+    await con.rollback();
+    throw err;
+  } finally {
+    con.close()
+  }
+}
+exports.getmarks = async () => {
+  try {
+    // let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,candidatedetails.*,questions.answer as originalanswer from candidatetestdata inner join candidatedetails
+    // on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id`;
+    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct,candidatedetails.*,SUM(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatetestdata.createddate as date 
+    from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id GROUP BY candidatetestdata.candidate_id`;
+    const result = await db.query(sql)
+    return result[0];
+  } catch (e) {
+    throw e
+  }
+}
+
 exports.getAll = async (portfolio_id) => {
   try {
     let sql = `SELECT analytic_id, name, weightage,symbol FROM analytic where portfolio_id = ?`;
@@ -10,10 +74,11 @@ exports.getAll = async (portfolio_id) => {
   }
 }
 
-exports.fetch = async () => {
+exports.fetch = async (testlog_id, candidate_id) => {
   try {
-    let sql = `SELECT * FROM questions`;
-    const result = await db.query(sql)
+    let sql = "SELECT questions.* from candidatetestdata inner join questions ON questions.question_id = candidatetestdata.question_id where testlog_id = ? and candidate_id = ?"
+    //[testlog_id, candidate_id, NULL])
+    const result = await db.query(sql, [testlog_id, candidate_id])
     return result[0];
   } catch (e) {
     throw e
@@ -57,6 +122,10 @@ exports.insertcandidate = async (param) => {
     await con.beginTransaction();
     const result = await con.query("INSERT INTO candidatedetails (name,position, email, mobile) VALUE ( ?, ?, ?, ? ) ",
       [param.name, param.position, param.email, param.mobile])
+    await con.commit();
+    await con.beginTransaction();
+    const test = await con.query("INSERT INTO candidatetestlog (candidate_id,test, createdate) VALUE ( ?, ?, NOW()) ",
+      [result[0].insertId, 0])
     await con.commit();
     return result[0].insertId;
   } catch (err) {

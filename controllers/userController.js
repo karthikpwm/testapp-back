@@ -6,7 +6,7 @@ exports.register = async (req, res) => {
   const { name, email, password } = req.body;
 
   // const emailRegx = /@gmail.com/;
-  console.log(req.body)
+  //console.log(req.body)
   // if(!emailRegx.test(email)) throw "Email is not supported form your domain"
   if (password.length < 6) throw "Password must be atleast 6 characters long"
   const userExits = await User.findOneEmail({
@@ -27,8 +27,8 @@ exports.login = async (req, res) => {
     email,
     password: sha256(password + process.env.SALT)
   })
-  console.log(user)
-  if (user.length !== 0) throw "Email and Password did not match"
+  //console.log('user details', user, user.length)
+  if (!user || user.length === 0) throw "Email and Password did not match"
 
   const token = await jwt.sign({ id: user.id }, process.env.SECRET)
   res.json({

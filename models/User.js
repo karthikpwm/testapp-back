@@ -29,10 +29,11 @@ exports.findOneEmail = async (params) => {
 
 exports.connection = async (params) => {
   try {
-    let sql = `SELECT * FROM userdetails where email = ?`;
+    //console.log('asdfasdf', params)
+    let sql = `SELECT * FROM userdetails where email = ? and password = ?`;
 
     const result = await db.query(sql, [params.email, params.password])
-    console.log(result[0][0])
+    // console.log(result)
     return result[0];
   } catch (e) {
     throw e
