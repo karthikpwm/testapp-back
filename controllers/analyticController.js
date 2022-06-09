@@ -15,6 +15,11 @@ exports.getmarks = async (req, res) => {
 
   res.json({ data: data })
 };
+exports.getcandidateqstnmarks = async (req, res) => {
+  let data = await analytic.getcandidateqstnmarks();
+
+  res.json({ data: data })
+};
 exports.fetch = async (req, res) => {
   //let total = await analytic.totalWe(); 
   let result = await analytic.fetch(req.body.testlog_id, req.body.candidate_id)

@@ -4,8 +4,8 @@ exports.create = async (param) => {
   const con = await db.getConnection()
   try {
     await con.beginTransaction();
-    const result = await con.query("INSERT INTO userdetails (name, email, password) VALUE ( ?, ?, ? ) ",
-      [param.name, param.email, param.password])
+    const result = await con.query("INSERT INTO userdetails (name, email, password,company_id) VALUE ( ?, ?, ?, ? ) ",
+      [param.name, param.email, param.password,param.company_id])
     await con.commit();
     return result[0].insertId;
   } catch (err) {
