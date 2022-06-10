@@ -28,6 +28,15 @@ exports.starttest = async (candidate_id) => {
     con.close()
   }
 }
+exports.deletecan = async() => {
+  try {
+    let sql = `truncate table candidatetestdata `;
+    const result = await db.query(sql)
+    return true;
+  } catch (e) {
+    throw e
+  }
+}
 
 exports.answertest = async (testlog_id, candidate_id, userAnswers) => {
   const con = await db.getConnection()
@@ -66,8 +75,8 @@ exports.getmarks = async () => {
 
 exports.getcandidateqstnmarks = async () => {
   try {
-    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "correct", "wrong") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
-      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 21 and candidatetestdata.answer IS NOT NULL`;
+    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
+      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 23 and candidatetestdata.answer IS NOT NULL`;
     const result = await db.query(sql)
     return result[0];
   } catch (e) {

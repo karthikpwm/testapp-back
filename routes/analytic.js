@@ -14,6 +14,7 @@ router.post("/insertcandidate", auth, catchErrors(analyticController.insertcandi
 router.post("/mail", catchErrors(analyticController.mail))
 router.post("/start_test", auth, catchErrors(analyticController.starttest))
 router.post("/answer_test", auth, catchErrors(analyticController.answertest))
+router.post("/deletecan", catchErrors(analyticController.deletecan))
 //router.get("/uploadRecord", catchErrors(analyticController.uploadRecord))
 // router.post("/uploadRecord", catchErrors(analyticController.postUploadRecord))
 // router.put("/:analytic_id", catchErrors(analyticController.updateRecord))

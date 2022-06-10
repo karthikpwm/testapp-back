@@ -100,6 +100,18 @@ exports.delete = async (req, res) => {
   })
 
 };
+
+exports.deletecan = async (req, res) => {
+  // if (Object.keys(req.params).length === 0 && req.param === undefined) {
+  //   throw '400:Parameter not Valid'
+  // }
+
+  const result = await analytic.deletecan(req.params)
+  res.json({
+    message: 'record delete successfully'
+  })
+
+};
 // exports.uploadRecord = async (req,res) => {
 
 //   const result = await analytic.uploadRecord()
