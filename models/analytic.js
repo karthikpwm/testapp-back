@@ -76,7 +76,7 @@ exports.getmarks = async () => {
 exports.getcandidateqstnmarks = async () => {
   try {
     let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
-      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 23 and candidatetestdata.answer IS NOT NULL`;
+      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 32 and candidatetestdata.answer IS NOT NULL`;
     const result = await db.query(sql)
     return result[0];
   } catch (e) {
