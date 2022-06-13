@@ -15,7 +15,7 @@ const db = mysql.createPool({
   user: 'root',
   password: '',
   connectionLimit: 50,
-  database: 'quizz',
+  database: 'quiz',
   dateStrings: true,
 
 });

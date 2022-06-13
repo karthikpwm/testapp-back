@@ -1,6 +1,6 @@
 const { db } = require('../config/config')
 
-exports.starttest = async (candidate_id) => {
+exports.starttest = async (candidate_id, company_id) => {
   const con = await db.getConnection()
   try {
     await con.beginTransaction();
@@ -13,8 +13,8 @@ exports.starttest = async (candidate_id) => {
       [1, testlog_id])
     await con.commit();
     await con.beginTransaction();
-    await con.query("insert into candidatetestdata (testlog_id,candidate_id,question_id,answer,createddate) select ?,?,question_id,?,now() from questions limit 20",
-      [testlog_id, candidate_id, null])
+    await con.query("insert into candidatetestdata (testlog_id,candidate_id,question_id,answer,createddate) select ?,?,question_id,?,now() from questions where company_id = ? order by question_id desc limit 20",
+      [testlog_id, candidate_id, null, company_id])
     //await con.query("SELECT * from candidatetestdata inner join questions ON questions.question_id = candidatetestdata.question_id where testlog_id = ?,candidate_id = ?",
     //[testlog_id, candidate_id, NULL])
     await con.commit();
@@ -28,7 +28,7 @@ exports.starttest = async (candidate_id) => {
     con.close()
   }
 }
-exports.deletecan = async() => {
+exports.deletecan = async () => {
   try {
     let sql = `truncate table candidatetestdata `;
     const result = await db.query(sql)
@@ -38,19 +38,23 @@ exports.deletecan = async() => {
   }
 }
 
-exports.answertest = async (testlog_id, candidate_id, userAnswers) => {
+exports.answertest = async (testlog_id, candidate_id, userAnswers, timepassed) => {
   const con = await db.getConnection()
   try {
 
     await con.beginTransaction();
     let getUserAnswers = []
     for (const [key, value] of Object.entries(userAnswers)) {
-      const result = await con.query("update candidatetestdata set answer = ? where testlog_id = ? and candidate_id = ? and question_id = ?",
+      await con.query("update candidatetestdata set answer = ? where testlog_id = ? and candidate_id = ? and question_id = ?",
         [value, testlog_id, candidate_id, key])
     }
-
     await con.commit();
 
+    await con.beginTransaction();
+    await con.query("UPDATE candidatetestlog SET timepassed = ? where testlog_id = ?", [
+      timepassed, testlog_id
+    ])
+    await con.commit();
     return 1;
 
   } catch (err) {
@@ -64,9 +68,20 @@ exports.getmarks = async () => {
   try {
     // let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,candidatedetails.*,questions.answer as originalanswer from candidatetestdata inner join candidatedetails
     // on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id`;
-    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct,candidatedetails.*,SUM(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatetestdata.createddate as date 
-    from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id GROUP BY candidatetestdata.candidate_id`;
+    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct,candidatedetails.*,SUM(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatetestdata.createddate as date,candidatetestlog.timepassed as time 
+    from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id GROUP BY candidatetestdata.candidate_id`;
     const result = await db.query(sql)
+    return result[0];
+  } catch (e) {
+    throw e
+  }
+}
+
+exports.printcanquestions = async (candidate_id) => {
+  try {
+    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
+    inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = ? and candidatetestdata.answer IS NOT NULL`;
+    const result = await db.query(sql, [candidate_id])
     return result[0];
   } catch (e) {
     throw e
@@ -76,7 +91,7 @@ exports.getmarks = async () => {
 exports.getcandidateqstnmarks = async () => {
   try {
     let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
-      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 32 and candidatetestdata.answer IS NOT NULL`;
+      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 27 and candidatetestdata.answer IS NOT NULL`;
     const result = await db.query(sql)
     return result[0];
   } catch (e) {
@@ -141,12 +156,12 @@ exports.insertcandidate = async (param) => {
   const con = await db.getConnection()
   try {
     await con.beginTransaction();
-    const result = await con.query("INSERT INTO candidatedetails (name,position, email, mobile) VALUE ( ?, ?, ?, ? ) ",
-      [param.name, param.position, param.email, param.mobile])
+    const result = await con.query("INSERT INTO candidatedetails (name,position, email, mobile,company_id) VALUE ( ?, ?, ?, ?, ? ) ",
+      [param.name, param.position, param.email, param.mobile, param.company_id])
     await con.commit();
     await con.beginTransaction();
-    const test = await con.query("INSERT INTO candidatetestlog (candidate_id,test, createdate) VALUE ( ?, ?, NOW()) ",
-      [result[0].insertId, 0])
+    const test = await con.query("INSERT INTO candidatetestlog (candidate_id,test, createdate,company_id,timelimit) VALUE ( ?, ?, NOW(), ?, ?) ",
+      [result[0].insertId, 0, param.company_id, param.timelimit])
     await con.commit();
     return result[0].insertId;
   } catch (err) {
@@ -211,7 +226,7 @@ exports.insertcandidate = async (param) => {
 //     await params.excelData.forEach(async (param) => {
 //       let sql = `SELECT * FROM analytic WHERE portfolio_id = ? and symbol = ? LIMIT 1`;
 //       const result = await db.query(sql, [param.portfolio_id, param.symbol])
-//       //console.log('dgdfgfdg',result[0][0]['analytic_id'] ,[param.portfolio_id,param.symbol]);           
+//       //console.log('dgdfgfdg',result[0][0]['analytic_id'] ,[param.portfolio_id,param.symbol]);
 //       const analytic_id = result[0][0] != undefined ? result[0][0]['analytic_id'] : null;
 //       //console.log('ansfasf',analytic_id)
 //       // await con.beginTransaction();
@@ -227,7 +242,7 @@ exports.insertcandidate = async (param) => {
 //         await db.query(sql,
 //           [param.weightage, analytic_id])
 //       }
-//       //await con.commit();               
+//       //await con.commit();
 //     });
 //     return true;
 //   }
@@ -256,11 +271,11 @@ exports.insertcandidate = async (param) => {
 //       console.log('inserted')
 //       const result =  await con.query(`insert INTO nse (close, prevclose, symbol,series) VALUE ( ?, ?, ?, ? )`,
 //       [param.CLOSE,param.PREVCLOSE,param.SYMBOL,param.SERIES])
-//       //const result =  await db.query(sql,[param.SYMBOL])  
-//       console.log(result[0][0],param.CLOSE); 
+//       //const result =  await db.query(sql,[param.SYMBOL])
+//       console.log(result[0][0],param.CLOSE);
 //       // let sql1 = `SELECT * FROM nse WHERE symbol = ? LIMIT 1`;
-//       // const result1 = await db.query(sql1,[param.symbol]) 
-//     //   console.log(result[0][0]);           
+//       // const result1 = await db.query(sql1,[param.symbol])
+//     //   console.log(result[0][0]);
 //     //   const nse_id = result[0][0] != undefined ? result[0][0]['nse_id'] : null;
 //     //   //const bsymbol = result[0][4] != undefined ? result[0][4]['bsymbol'] : null;
 //     //   //const nse_id =  result1 != undefined ? result1[0][0]['nse_id'] : null;
@@ -283,9 +298,9 @@ exports.insertcandidate = async (param) => {
 
 //     //       console.log(sql)
 //     //   }
-//       // await con.commit(); 
+//       // await con.commit();
 
-//       return result[0].insertId;            
+//       return result[0].insertId;
 //     });
 //     console.log('ho')
 //   }
@@ -316,8 +331,8 @@ exports.insertcandidate = async (param) => {
 //       const result = await db.query(sql, [param.SYMBOL, param.SERIES, param.ISIN])
 
 //       // let sql1 = `SELECT * FROM nse WHERE symbol = ? LIMIT 1`;
-//       // const result1 = await db.query(sql1,[param.symbol]) 
-//       //console.log(result[0][0]);           
+//       // const result1 = await db.query(sql1,[param.symbol])
+//       //console.log(result[0][0]);
 //       const nse_id = result[0][0] != undefined ? result[0][0]['nse_id'] : null;
 //       //const bsymbol = result[0][4] != undefined ? result[0][4]['bsymbol'] : null;
 //       //const nse_id =  result1 != undefined ? result1[0][0]['nse_id'] : null;
@@ -346,7 +361,7 @@ exports.insertcandidate = async (param) => {
 //         //console.log('2nd sql', sql1)
 //         //console.log(sql)
 //       }
-//       // await con.commit();               
+//       // await con.commit();
 //     });
 //     return true;
 //   }
