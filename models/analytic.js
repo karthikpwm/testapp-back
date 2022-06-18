@@ -1,4 +1,5 @@
 const { db } = require('../config/config')
+const nodemailer = require("nodemailer");
 
 exports.starttest = async (candidate_id, company_id) => {
   const con = await db.getConnection()
@@ -79,8 +80,8 @@ exports.getmarks = async () => {
 
 exports.printcanquestions = async (candidate_id) => {
   try {
-    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
-    inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = ? and candidatetestdata.answer IS NOT NULL`;
+    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer,candidatedetails.name as candidatename from candidatetestdata
+    inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = ? INNER JOIN candidatedetails ON candidatedetails.candidate_id = candidatetestdata.candidate_id and candidatetestdata.answer IS NOT NULL`;
     const result = await db.query(sql, [candidate_id])
     return result[0];
   } catch (e) {
@@ -88,11 +89,44 @@ exports.printcanquestions = async (candidate_id) => {
   }
 }
 
-exports.getcandidateqstnmarks = async () => {
+exports.getcandidateqstnmarks = async (candidate_id) => {
   try {
-    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,questions.*, candidatetestdata.answer as candidateanswer from candidatetestdata
-      inner join questions on questions.question_id = candidatetestdata.question_id and candidatetestdata.candidate_id = 27 and candidatetestdata.answer IS NOT NULL`;
-    const result = await db.query(sql)
+    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct,SUM(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatedetails.*,
+     candidatetestdata.answer as candidateanswer,userdetails.name as companyname from candidatetestdata inner join questions on questions.question_id = candidatetestdata.question_id
+      INNER JOIN candidatedetails ON candidatedetails.candidate_id = candidatetestdata.candidate_id and candidatetestdata.candidate_id = ? INNER JOIN userdetails ON candidatedetails.company_id = userdetails.company_id and candidatetestdata.answer IS NOT NULL`;
+    const result = await db.query(sql, [candidate_id])
+    console.log(result[0][0]['name'])
+    const name = result[0][0]['name']
+    const companyname = result[0][0]['companyname']
+    const mark = result[0][0]['totalcorrect']
+    const position = result[0][0]['position']
+    const mobile = result[0][0]['mobile']
+    const email = result[0][0]['email']
+    let transporter = nodemailer.createTransport({
+      service: 'gmail',
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: 'karthik@pwm-india.com', // generated ethereal user
+        pass: 'swltvwnwpukasygb', // generated ethereal password
+      },
+      debug: true, // show debug output
+      logger: true
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+      from: '<karthik@pwm-india.com>', // sender address "kk"
+      to: "karthik2768@gmail," + email, // list of receivers  + email
+      subject: "Candidate " + name + "  Result", // Subject line
+      text: "Marks Scored out of 10", // plain text body
+      html: "<b>Candidate Name :" + name + ",<br/> Applied for:" + companyname + ",<br/> Marks :" + mark + "<br/>Applied Position :" + position + ",<br/>Mobile :" + mobile + "</b>", // html body
+    });
+
+    //console.log("Message sent: %s", info.messageId);
+    // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+    // Preview only available when sending through an Ethereal account
+    //console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
     return result[0];
   } catch (e) {
     throw e
@@ -174,6 +208,40 @@ exports.insertcandidate = async (param) => {
 }
 
 
+// async..await is not allowed in global scope, must use a wrapper
+//exports.mail = async (res, req) => {
+  // Generate test SMTP service account from ethereal.email
+  // Only needed if you don't have a real mail account for testing
+  //let testAccount = await nodemailer.createTestAccount();
+  //console.log('work')
+  // create reusable transporter object using the default SMTP transport
+  // let transporter = nodemailer.createTransport({
+  //   service: 'gmail',
+  //   secure: false, // true for 465, false for other ports
+  //   auth: {
+  //     user: 'karthik@pwm-india.com', // generated ethereal user
+  //     pass: 'swltvwnwpukasygb', // generated ethereal password
+  //   },
+  //   debug: true, // show debug output
+  //   logger: true
+  // });
+
+  // send mail with defined transport object
+  // let info = await transporter.sendMail({
+  //   from: '"kk" <karthik@pwm-india.com>', // sender address
+  //   to: "karthik2768@gmail.com", // list of receivers
+  //   subject: "Hello", // Subject line
+  //   text: "kjbjkhgbjb ugkbkj", // plain text body
+  //   html: "<b>Hello world?</b>", // html body
+  // });
+
+  //console.log("Message sent: %s", info.messageId);
+  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+  // Preview only available when sending through an Ethereal account
+  //console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+//}
 // exports.upexcel = async (param) => {
 //   const con = await db.getConnection()
 //   try {

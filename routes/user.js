@@ -4,6 +4,7 @@ const auth = require('../middlewares/auth')
 const { catchErrors } = require('./../handlers/errorHandler')
 const userContoller = require('../controllers/userController')
 router.post("/login", catchErrors(userContoller.login))
+router.get("/logout", catchErrors(userContoller.logout))
 router.post("/register", catchErrors(userContoller.register))
 
 

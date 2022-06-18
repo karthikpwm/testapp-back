@@ -12,12 +12,12 @@ exports.register = async (req, res) => {
   const userExits = await User.findOneEmail({
     email
   })
-  if (userExits.length !== 0) throw "User Email Already Exit";
+  if (userExits.length !== 0) throw "User Email Already Exist";
 
   await User.create({ name, email, password: sha256(password + process.env.SALT), company_id })
 
   res.json({
-    message: `User [${name}] register successfully`
+    message: `User [${name}] registered successfully`
   })
 };
 
@@ -39,4 +39,7 @@ exports.login = async (req, res) => {
     message: user.email + "User logged successfully",
     token,
   })
-} 
+}
+exports.logout = async (req, res) => {
+  jwt.destry()
+}
