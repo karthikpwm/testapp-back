@@ -4,19 +4,19 @@ const mysql = require('mysql2/promise');
 console.log(process.env.MYSQL_HOST)
 //local mysql db connection
 const db = mysql.createPool({
-  // host     : process.env.MYSQL_HOST,
-  // user     : process.env.MYSQL_USER,
-  // password : process.env.MYSQL_PWD,
-  // connectionLimit: 50,
-  // database : process.env.MYSQL_DB,
-  // dateStrings: true,
-
-  host: 'localhost',
-  user: 'root',
-  password: '',
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PWD,
   connectionLimit: 50,
-  database: 'quiz',
+  database: process.env.MYSQL_DB,
   dateStrings: true,
+
+  // host: 'localhost',
+  // user: 'root',
+  // password: '',
+  // connectionLimit: 50,
+  // database: 'quiz',
+  // dateStrings: true,
 
 });
 
