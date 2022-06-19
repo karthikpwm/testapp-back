@@ -1,6 +1,6 @@
 const sha256 = require('js-sha256')
 const jwt = require('jwt-then')
-const User = require('./../models/user')
+const User = require('./../models/User')
 
 exports.register = async (req, res) => {
   const { name, email, password, company_id } = req.body;
