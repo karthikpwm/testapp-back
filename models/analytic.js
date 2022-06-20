@@ -69,8 +69,10 @@ exports.getmarks = async () => {
   try {
     // let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct, candidatetestdata.*,candidatedetails.*,questions.answer as originalanswer from candidatetestdata inner join candidatedetails
     // on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id`;
-    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct,candidatedetails.*,SUM(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatetestdata.createddate as date,candidatetestlog.timepassed as time 
-    from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id GROUP BY candidatetestdata.candidate_id`;
+    let sql = `SELECT sum(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,any_value(candidatedetails.name) as name,any_value(candidatedetails.email) as email,
+    any_value(candidatedetails.mobile) as mobile,any_value(candidatedetails.candidate_id) as candidate_id,any_value(candidatedetails.company_id) as company_id,any_value(candidatedetails.position) as position,any_value(candidatetestdata.createddate) as date,any_value(candidatetestlog.timepassed) as time
+        from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id
+     GROUP BY candidatetestdata.candidate_id`;
     const result = await db.query(sql)
     return result[0];
   } catch (e) {
@@ -91,9 +93,8 @@ exports.printcanquestions = async (candidate_id) => {
 
 exports.getcandidateqstnmarks = async (candidate_id) => {
   try {
-    let sql = `SELECT IF(candidatetestdata.answer=questions.answer, "1", "0") as correct,SUM(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatedetails.*,
-     candidatetestdata.answer as candidateanswer,userdetails.name as companyname from candidatetestdata inner join questions on questions.question_id = candidatetestdata.question_id
-      INNER JOIN candidatedetails ON candidatedetails.candidate_id = candidatetestdata.candidate_id and candidatetestdata.candidate_id = ? INNER JOIN userdetails ON candidatedetails.company_id = userdetails.company_id and candidatetestdata.answer IS NOT NULL`;
+    let sql = `SELECT sum(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,any_value(candidatedetails.name) as name,any_value(candidatedetails.email) as email,any_value(candidatedetails.mobile) as mobile,any_value(candidatedetails.candidate_id) as candidate_id,any_value(candidatedetails.company_id) as company_id,any_value(candidatedetails.position) as position, any_value(candidatetestdata.answer) as candidateanswer,any_value(userdetails.name) as companyname from candidatetestdata
+    inner join questions on questions.question_id = candidatetestdata.question_id INNER JOIN candidatedetails ON candidatedetails.candidate_id = candidatetestdata.candidate_id and candidatetestdata.candidate_id = ? INNER JOIN userdetails ON candidatedetails.company_id = userdetails.company_id and candidatetestdata.answer IS NOT NULL`;
     const result = await db.query(sql, [candidate_id])
     console.log(result[0][0]['name'])
     const name = result[0][0]['name']
@@ -116,17 +117,17 @@ exports.getcandidateqstnmarks = async (candidate_id) => {
     // send mail with defined transport object
     let info = await transporter.sendMail({
       from: '<karthik@pwm-india.com>', // sender address "kk"
-      to: "karthik2768@gmail," + email, // list of receivers  + email
+      to: "karthik2768@gmail.com," + email, // list of receivers  + email
       subject: "Candidate " + name + "  Result", // Subject line
       text: "Marks Scored out of 10", // plain text body
       html: "<b>Candidate Name :" + name + ",<br/> Applied for:" + companyname + ",<br/> Marks :" + mark + "<br/>Applied Position :" + position + ",<br/>Mobile :" + mobile + "</b>", // html body
     });
 
-    //console.log("Message sent: %s", info.messageId);
+    console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 
     // Preview only available when sending through an Ethereal account
-    //console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
     return result[0];
   } catch (e) {
     throw e
