@@ -124,17 +124,17 @@ exports.getcandidateqstnmarks = async (candidate_id) => {
     // send mail with defined transport object
     let info = await transporter.sendMail({
       from: '<karthik@pwm-india.com>', // sender address "kk"
-      to: "karthik2768@gmail.com,", // list of receivers  + email
+      to: "hre@indtextile.in,", // list of receivers  + email
       subject: "Candidate " + name + "  Result", // Subject line
       text: "Marks Scored out of 10", // plain text body
       html: "<b>Candidate Name :" + name + ",<br/> Applied for:" + companyname + ",<br/> Marks :" + mark + "<br/>Applied Position :" + position + ",<br/>Mobile :" + mobile + "</b>", // html body
     });
 
-    console.log("Message sent: %s", info.messageId);
+    //console.log("Message sent: %s", info.messageId);
     // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
 
     // Preview only available when sending through an Ethereal account
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+    //console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
     return result[0];
   } catch (e) {
     throw e
