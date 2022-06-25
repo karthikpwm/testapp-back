@@ -9,9 +9,7 @@ exports.register = async (req, res) => {
   //console.log(req.body)
   // if(!emailRegx.test(email)) throw "Email is not supported form your domain"
   if (password.length < 6) throw "Password must be atleast 6 characters long"
-  const userExits = await User.findOneEmail({
-    email
-  })
+  const userExits = await User.findOneEmail({ email })
   if (userExits.length !== 0) throw "User Email Already Exist";
 
   await User.create({ name, email, password: sha256(password + process.env.SALT), company_id })
@@ -23,11 +21,7 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   const { email, password } = req.body
-  const user = await User.connection({
-    email,
-    password: sha256(password + process.env.SALT),
-
-  })
+  const user = await User.connection({ email, password: sha256(password + process.env.SALT), })
   console.log('userdetails', user, user.length)
   if (!user || user.length === 0) throw "Email and Password did not match"
 

@@ -4,15 +4,15 @@ module.exports = async (req, res, next) => {
 
   try {
     console.log(req.headers);
-    if(!req.headers.authorization) throw "Forbidden"
+    if (!req.headers.authorization) throw "Forbidden"
     const token = req.headers.authorization.split(" ")[1];
-    const payload = await jwt.verify(token, process.env.SECRET);   
-    console.log(payload)   
+    const payload = await jwt.verify(token, process.env.SECRET);
+    console.log('payload', payload)
     req.payload = payload;
     next();
   } catch (err) {
-      res.status(401).json({
-        message: "Forbidden authdication error"
-      })
+    res.status(401).json({
+      message: "Forbidden authdication error"
+    })
   }
 }

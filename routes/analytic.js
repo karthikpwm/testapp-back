@@ -6,7 +6,7 @@ const analyticController = require('../controllers/analyticController')
 
 // router.get("/:portfolio_id", catchErrors(analyticController.getAll))
 // router.delete("/:analytic_id", catchErrors(analyticController.delete))
-// router.get("/:analytic_id", catchErrors(analyticController.findOne))
+
 router.post("/questions", auth, catchErrors(analyticController.fetch))
 router.get("/getmarks", catchErrors(analyticController.getmarks))
 router.post("/getcandidateqstnmarks", catchErrors(analyticController.getcandidateqstnmarks))

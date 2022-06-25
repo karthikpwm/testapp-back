@@ -31,6 +31,8 @@ app.post('/fetch', (req, res) => {
 app.use("/analytic", require('./routes/analytic'))
 
 app.use("/user", require('./routes/user'))
+app.use("/guest", require('./routes/guest'))
+app.use("/token", require('./routes/token'))
 // app.use( "/credit", require('./routes/credit'))
 // app.use( "/customer", require('./routes/customer'))
 // app.use( "/bill", require('./routes/bill'))
