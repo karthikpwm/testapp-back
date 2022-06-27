@@ -24,8 +24,9 @@ exports.jwtVerifyToken = async (req, res) => {
   //console.log(verify)
   var todate = verify.toDate
   let currenttime = date.getTime()
-  console.log(currenttime)
-  console.log(todate)
+  //console.log(currenttime)
+  //console.log(verify.toDate)
+  //console.log(todate)
   if (todate >= currenttime) {
     //console.log(verify)
     res.json({ verify: verify })

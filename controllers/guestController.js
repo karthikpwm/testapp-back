@@ -7,7 +7,7 @@ exports.newregister = async (req, res) => {
   console.log(req.body)
   const result = await Guest.insertcandidate(req.body)
 
-  const token = await jwt.sign({ id: result.id }, process.env.SECRET)
+  const token = await jwt.sign({ id: result.id }, process.env.SECRET, { expiresIn: '1800s' })
 
   res.json({
     token,
