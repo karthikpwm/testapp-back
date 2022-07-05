@@ -3,7 +3,7 @@ const jwt = require('jwt-then')
 const User = require('./../models/User')
 
 exports.register = async (req, res) => {
-  const { name, email, password, company_id } = req.body;
+  const { name, email, password, company_id, usertype } = req.body;
 
   // const emailRegx = /@gmail.com/;
   //console.log(req.body)
@@ -12,7 +12,7 @@ exports.register = async (req, res) => {
   const userExits = await User.findOneEmail({ email })
   if (userExits.length !== 0) throw "User Email Already Exist";
 
-  await User.create({ name, email, password: sha256(password + process.env.SALT), company_id })
+  await User.create({ name, email, password: sha256(password + process.env.SALT), company_id, usertype })
 
   res.json({
     message: `User [${name}] registered successfully`
@@ -37,3 +37,8 @@ exports.login = async (req, res) => {
 exports.logout = async (req, res) => {
   jwt.destry()
 }
+exports.getuserdetails = async (req, res) => {
+  let data = await User.getuserdetails();
+
+  res.json({ data: data })
+};

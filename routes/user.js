@@ -6,6 +6,7 @@ const userContoller = require('../controllers/userController')
 router.post("/login", catchErrors(userContoller.login))
 router.get("/logout", catchErrors(userContoller.logout))
 router.post("/register", catchErrors(userContoller.register))
+router.get("/getuserdetails", catchErrors(userContoller.getuserdetails))
 
 
 

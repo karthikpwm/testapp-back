@@ -81,6 +81,15 @@ exports.getmarks = async () => {
     throw e
   }
 }
+exports.getallqstns = async () => {
+  try {
+    let sql = `SELECT * from questions`;
+    const result = await db.query(sql)
+    return result[0];
+  } catch (e) {
+    throw e
+  }
+}
 
 exports.printcanquestions = async (candidate_id) => {
   try {
@@ -214,5 +223,45 @@ exports.insertcandidate = async (param) => {
     throw err;
   } finally {
     con.close()
+  }
+}
+exports.insertqstn = async (param) => {
+  const con = await db.getConnection()
+  try {
+    await con.beginTransaction();
+    const result = await con.query("INSERT INTO questions (question,options, answer, company_id) VALUE ( ?, ?, ?, ?) ",
+      [param.question, param.options, param.answer, param.company_id])
+    await con.commit();
+    return result[0];
+  } catch (err) {
+    console.log(err)
+    await con.rollback();
+    throw err;
+  } finally {
+    con.close()
+  }
+}
+exports.editqstn = async (question_id, param) => {
+  const con = await db.getConnection()
+  try {
+    await con.beginTransaction();
+    const result = await con.query("update questions SET question = ?, options = ?, answer = ?, company_id = ? where question_id = ?",
+      [param.question, param.options, param.answer, param.company_id, question_id])
+    await con.commit();
+    return result;
+  } catch (err) {
+    await con.rollback();
+    throw err;
+  } finally {
+    con.close()
+  }
+}
+exports.deleteqstn = async (param) => {
+  try {
+    let sql = `DELETE FROM questions where question_id=?`;
+    const result = await db.query(sql, [param.question_id])
+    return true;
+  } catch (e) {
+    throw e
   }
 }

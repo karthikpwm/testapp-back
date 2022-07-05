@@ -25,6 +25,12 @@ exports.getmarks = async (req, res) => {
 
   res.json({ data: data })
 };
+
+exports.getallqstns = async (req, res) => {
+  let data = await analytic.getallqstns();
+
+  res.json({ data: data })
+};
 exports.getcandidateqstnmarks = async (req, res) => {
   let data = await analytic.getcandidateqstnmarks(req.body.candidate_id);
 
@@ -47,9 +53,27 @@ exports.insertcandidate = async (req, res) => {
     insert_id: result
   })
 };
+exports.insertqstn = async (req, res) => {
+  if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+    throw '400:Parameter not Valid'
+  }
 
+  const result = await analytic.insertqstn(req.body)
+  res.json({
+    message: `questions inserted successfully`,
+    insert_id: result
+  })
+};
 
+exports.editqstn = async (req, res) => {
 
+  if (Object.keys(req.params).length === 0 && req.params.question_id === undefined) {
+    throw '400:Parameter not Valid'
+  }
+  //let sendmail = await analytic.mail(req.params.candidate_id)
+  let result = await analytic.editqstn(req.params.question_id, req.body)
+  res.json({ data: result })
+};
 
 
 // exports.upexcel = async (req, res) => {
@@ -161,6 +185,17 @@ exports.answertest = async (req, res) => {
   })
 
 }
+exports.deleteqstn = async (req, res) => {
+  if (Object.keys(req.params).length === 0 && req.params.aquestion_id === undefined) {
+    throw '400:Parameter not Valid'
+  }
+
+  const result = await analytic.deleteqstn(req.params)
+  res.json({
+    message: 'record delete successfully'
+  })
+
+};
 // exports.update = async (req,res) => {
 //   if(req.body.constructor === Object && Object.keys(req.body).length === 0){
 //     throw '400:Parameter not Valid'
