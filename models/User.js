@@ -48,3 +48,28 @@ exports.getuserdetails = async () => {
     throw e
   }
 }
+exports.editpassword = async (userid, param) => {
+  const con = await db.getConnection()
+  try {
+    await con.beginTransaction();
+    let result = await con.query('update userdetails SET name = ? ,password = ?, email = ?,company_id = ? where user_id = ?',
+      [param.name, param.password, param.email, param.company_id, userid])
+    await con.commit();
+    return result
+
+  } catch (err) {
+    con.rollback()
+    throw err
+  } finally {
+    con.close();
+  }
+}
+exports.deleteuser = async (param) => {
+  try {
+    let sql = `DELETE FROM userdetails where user_id=?`;
+    const result = await db.query(sql, [param.userid])
+    return true;
+  } catch (e) {
+    throw e
+  }
+}

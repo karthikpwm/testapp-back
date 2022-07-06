@@ -42,3 +42,23 @@ exports.getuserdetails = async (req, res) => {
 
   res.json({ data: data })
 };
+exports.editpassword = async (req, res) => {
+  if (Object.keys(req.params).length === 0 && req.params.userid === undefined) {
+    throw '400:Parameter not Valid'
+  }
+  const { name, password, email, company_id } = req.body
+  let result = await User.editpassword(req.params.userid, { name, email, password: sha256(password + process.env.SALT), company_id })
+  res.json({ data: result })
+}
+
+exports.deleteuser = async (req, res) => {
+  if (Object.keys(req.params).length === 0 && req.params.userid === undefined) {
+    throw '400:Parameter not Valid'
+  }
+
+  const result = await User.deleteuser(req.params)
+  res.json({
+    message: 'record deleted successfully'
+  })
+
+};

@@ -186,7 +186,7 @@ exports.answertest = async (req, res) => {
 
 }
 exports.deleteqstn = async (req, res) => {
-  if (Object.keys(req.params).length === 0 && req.params.aquestion_id === undefined) {
+  if (Object.keys(req.params).length === 0 && req.params.question_id === undefined) {
     throw '400:Parameter not Valid'
   }
 
