@@ -22,15 +22,16 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body
   const user = await User.connection({ email, password: sha256(password + process.env.SALT), })
-  console.log('userdetails', user, user.length)
+  //console.log('userdetails', user[0].company_id, user.length)
   if (!user || user.length === 0) throw "Email and Password did not match"
-
+  const companydet = await User.getonecomp({ comp: user[0].company_id })
   const token = await jwt.sign({ id: user.id }, process.env.SECRET)
 
   //console.log(token)
   res.json({
     user: user[0],
     message: user.email + "User logged successfully",
+    companydetail: companydet[0],
     token,
   })
 }
@@ -61,4 +62,22 @@ exports.deleteuser = async (req, res) => {
     message: 'record deleted successfully'
   })
 
+};
+
+exports.createcompany = async (req, res) => {
+  if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+    throw '400:Parameter not Valid'
+  }
+  const result = await User.createcompany(req.body)
+  res.json({
+    message: 'company added successfully',
+    insert_id: result
+  })
+}
+exports.getcompdetails = async (req, res) => {
+  let data = await User.getcompdetails();
+
+  res.json({
+    data: data
+  })
 };

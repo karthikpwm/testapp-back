@@ -26,6 +26,16 @@ exports.findOneEmail = async (params) => {
     throw e
   }
 }
+exports.getonecomp = async (params) => {
+  try {
+    let sql = `SELECT * FROM companydetails where company_id = ?`;
+    const result = await db.query(sql, params.comp)
+    //console.log(result[0])
+    return result[0];
+  } catch (e) {
+    throw e
+  }
+}
 
 exports.connection = async (params) => {
   try {
@@ -33,8 +43,9 @@ exports.connection = async (params) => {
     let sql = `SELECT user_id,name,email,company_id,usertype FROM userdetails where email = ? and password = ?`;
 
     const result = await db.query(sql, [params.email, params.password])
-    // console.log(result)
+    //console.log(sql)
     return result[0];
+
   } catch (e) {
     throw e
   }
@@ -42,6 +53,15 @@ exports.connection = async (params) => {
 exports.getuserdetails = async () => {
   try {
     let sql = `SELECT * from userdetails`;
+    const result = await db.query(sql)
+    return result[0];
+  } catch (e) {
+    throw e
+  }
+}
+exports.getcompdetails = async () => {
+  try {
+    let sql = `SELECT * from companydetails`;
     const result = await db.query(sql)
     return result[0];
   } catch (e) {
@@ -72,4 +92,21 @@ exports.deleteuser = async (param) => {
   } catch (e) {
     throw e
   }
+}
+exports.createcompany = async (param) => {
+  const con = await db.getConnection()
+  try {
+    await con.beginTransaction();
+    const result = con.query('INSERT into companydetails(name) value (?)',
+      [param.name])
+    await con.commit();
+    return result[0];
+  } catch (err) {
+    //console.log(err)
+    await con.rollback();
+    throw err;
+  } finally {
+    con.close()
+  }
+
 }

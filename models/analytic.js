@@ -109,7 +109,7 @@ exports.getcandidateqstnmarks = async (candidate_id) => {
         from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id AND candidatedetails.candidate_id = ?
      GROUP BY candidatetestdata.candidate_id`;
     const result = await db.query(sql, [candidate_id])
-    console.log(result[0][0]['name'])
+    //console.log(result[0][0]['name'])
     const name = result[0][0]['name']
     //const companyname = result[0][0]['companyname']
     if (result[0][0]['company_id'] === 1) {
@@ -167,7 +167,7 @@ exports.fetch = async (testlog_id, candidate_id) => {
     let sql = "SELECT questions.* from candidatetestdata inner join questions ON questions.question_id = candidatetestdata.question_id where testlog_id = ? and candidate_id = ? ORDER BY RAND() LIMIT 10"
     //[testlog_id, candidate_id, NULL])
     const result = await db.query(sql, [testlog_id, candidate_id])
-    console.log(result)
+    //console.log(result)
     return result[0];
   } catch (e) {
     throw e
@@ -218,7 +218,7 @@ exports.insertcandidate = async (param) => {
     await con.commit();
     return result[0].insertId;
   } catch (err) {
-    console.log(err)
+    //console.log(err)
     await con.rollback();
     throw err;
   } finally {
@@ -234,7 +234,7 @@ exports.insertqstn = async (param) => {
     await con.commit();
     return result[0];
   } catch (err) {
-    console.log(err)
+    //console.log(err)
     await con.rollback();
     throw err;
   } finally {
