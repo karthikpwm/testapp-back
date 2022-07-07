@@ -4,8 +4,8 @@ exports.insertcandidate = async (param) => {
   const con = await db.getConnection()
   try {
     await con.beginTransaction();
-    const result = await con.query("INSERT INTO candidatedetails (name,position, email, mobile,company_id) VALUE ( ?, ?, ?, ?, ? ) ",
-      [param.name, param.position, param.email, param.mobile, param.company_id])
+    const result = await con.query("INSERT INTO candidatedetails (name,position, email, mobile,company_id,ctc,pincode) VALUE ( ?, ?, ?, ?, ?,?,? ) ",
+      [param.name, param.position, param.email, param.mobile, param.company_id, param.ctc, param.pincode])
     await con.commit();
     await con.beginTransaction();
     const test = await con.query("INSERT INTO candidatetestlog (candidate_id,test, createdate,company_id,timelimit) VALUE ( ?, ?, NOW(), ?, ?) ",
