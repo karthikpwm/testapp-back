@@ -110,3 +110,19 @@ exports.createcompany = async (param) => {
   }
 
 }
+exports.addcategory = async (param) => {
+  const con = await db.getConnection()
+  try{
+    await con.beginTransaction()
+    const result = con.query('insert into categories(category,company_id) values (? , ?)',
+     [param.category,param.company_id])
+    await con.commit();
+    return result
+  }catch (err) {
+    console.log(err)
+    await con.rollback();
+    throw err;
+  } finally {
+    con.close()
+}
+}

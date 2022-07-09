@@ -11,6 +11,7 @@ router.put("/editpassword/:userid", catchErrors(userContoller.editpassword))
 router.delete("/deleteuser/:userid", catchErrors(userContoller.deleteuser))
 router.post("/createcompany", catchErrors(userContoller.createcompany))
 router.get("/getcompdetails", catchErrors(userContoller.getcompdetails))
+router.post("/addcategory", catchErrors(userContoller.addcategory))
 
 // router.post("/validation", auth, catchErrors(userContoller.login))
 

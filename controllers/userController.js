@@ -81,3 +81,13 @@ exports.getcompdetails = async (req, res) => {
     data: data
   })
 };
+exports.addcategory = async (req, res) => {
+  if (req.body.constructor === Object && Object.keys(req.body).length === 0) {
+    throw '400:Parameter not Valid'
+  }
+  const result = await User.addcategory(req.body)
+  res.json({
+    message: 'successfully added',
+    result: result
+  })
+}
