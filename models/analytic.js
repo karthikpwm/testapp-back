@@ -1,5 +1,6 @@
 const { db } = require('../config/config')
 const nodemailer = require("nodemailer");
+var moment = require('moment-timezone');
 
 exports.starttest = async (candidate_id, company_id) => {
   const con = await db.getConnection()
@@ -10,11 +11,11 @@ exports.starttest = async (candidate_id, company_id) => {
     const testlog_id = result[0][0].testlog_id
     await con.commit();
     await con.beginTransaction();
-    await con.query("UPDATE candidatetestlog SET test = ?, attenddate = now() WHERE testlog_id = ? ",
-      [1, testlog_id])
+    await con.query("UPDATE candidatetestlog SET test = ?, attenddate =  ?  WHERE testlog_id = ? ",
+      [1, moment().utcOffset("+05:30").format(), testlog_id])
     await con.commit();
     await con.beginTransaction();
-    await con.query("insert into candidatetestdata (testlog_id,candidate_id,question_id,answer,createddate) select ?,?,question_id,?,now() from questions where company_id = ? order by question_id desc limit 20",
+    await con.query("insert into candidatetestdata (testlog_id,candidate_id,question_id,answer,createddate) select ?,?,question_id,?,CURRENT_TIMESTAMP from questions where company_id = ? order by question_id desc limit 20",
       [testlog_id, candidate_id, null, company_id])
     //await con.query("SELECT * from candidatetestdata inner join questions ON questions.question_id = candidatetestdata.question_id where testlog_id = ?,candidate_id = ?",
     //[testlog_id, candidate_id, NULL])
@@ -67,14 +68,14 @@ exports.answertest = async (testlog_id, candidate_id, userAnswers, timepassed) =
 }
 exports.getmarks = async () => {
   try {
-    // let sql = `SELECT sum(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatedetails.name as name,candidatedetails.email as email,
-    // candidatedetails.mobile as mobile,candidatedetails.ctc as ctc,candidatedetails.pincode as pincode,candidatedetails.candidate_id as candidate_id,candidatedetails.company_id as company_id,candidatedetails.position as position,candidatetestdata.createddate as date,candidatetestlog.timepassed as time
-    //     from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id
-    //  GROUP BY candidatetestdata.candidate_id`;
-    let sql = `SELECT sum(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,any_value(candidatedetails.name) as name,any_value(candidatedetails.email) as email,
-     any_value(candidatedetails.mobile) as mobile,any_value(candidatedetails.ctc) as ctc,any_value(candidatedetails.pincode) as pincode,any_value(candidatedetails.candidate_id) as candidate_id,any_value(candidatedetails.company_id) as company_id,any_value(candidatedetails.position) as position,any_value(candidatetestdata.createddate) as date,any_value(candidatetestlog.timepassed) as time
-         from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id
-      GROUP BY candidatetestdata.candidate_id`;
+    let sql = `SELECT sum(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,candidatedetails.name as name,candidatedetails.email as email,
+    candidatedetails.mobile as mobile,candidatedetails.ctc as ctc,candidatedetails.pincode as pincode,candidatedetails.candidate_id as candidate_id,candidatedetails.company_id as company_id,candidatedetails.position as position,candidatetestdata.createddate as date,candidatetestlog.timepassed as time
+        from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id
+     GROUP BY candidatetestdata.candidate_id`;
+    // let sql = `SELECT sum(IF(candidatetestdata.answer=questions.answer, "1", "0")) as totalcorrect,any_value(candidatedetails.name) as name,any_value(candidatedetails.email) as email,
+    //  any_value(candidatedetails.mobile) as mobile,any_value(candidatedetails.ctc) as ctc,any_value(candidatedetails.pincode) as pincode,any_value(candidatedetails.candidate_id) as candidate_id,any_value(candidatedetails.company_id) as company_id,any_value(candidatedetails.position) as position,any_value(candidatetestdata.createddate) as date,any_value(candidatetestlog.timepassed) as time
+    //      from candidatetestdata inner join candidatedetails on candidatedetails.candidate_id = candidatetestdata.candidate_id INNER JOIN questions on questions.question_id=candidatetestdata.question_id INNER JOIN candidatetestlog on candidatedetails.candidate_id = candidatetestlog.candidate_id
+    //   GROUP BY candidatetestdata.candidate_id`;
     const result = await db.query(sql)
     return result[0];
   } catch (e) {
