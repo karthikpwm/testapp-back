@@ -2,6 +2,8 @@ const { db } = require('../config/config')
 const nodemailer = require("nodemailer");
 var moment = require('moment-timezone');
 
+
+
 exports.starttest = async (candidate_id, company_id) => {
   const con = await db.getConnection()
   try {
