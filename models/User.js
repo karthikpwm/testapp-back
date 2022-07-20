@@ -38,12 +38,15 @@ exports.getonecomp = async (params) => {
 }
 
 exports.connection = async (params) => {
+
   try {
     //console.log('asdfasdf', params)
+
     let sql = `SELECT user_id,name,email,company_id,usertype FROM userdetails where email = ? and password = ?`;
 
     const result = await db.query(sql, [params.email, params.password])
-    //console.log(sql)
+
+    console.log(sql)
     return result[0];
 
   } catch (e) {
@@ -112,17 +115,17 @@ exports.createcompany = async (param) => {
 }
 exports.addcategory = async (param) => {
   const con = await db.getConnection()
-  try{
+  try {
     await con.beginTransaction()
     const result = con.query('insert into categories(category,company_id) values (? , ?)',
-     [param.category,param.company_id])
+      [param.category, param.company_id])
     await con.commit();
     return result
-  }catch (err) {
+  } catch (err) {
     console.log(err)
     await con.rollback();
     throw err;
   } finally {
     con.close()
-}
+  }
 }
